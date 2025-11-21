@@ -50,13 +50,26 @@ export const useLarkSilentAuth = () => {
       }
 
       try {
-        // tt.getUserInfoでユーザー情報を取得
-        window.tt!.getUserInfo({
-          success: async (res) => {
-            console.log('✅ Lark getUserInfo成功:', res);
-            const userInfo = res.userInfo;
+        // tt.requestAuthCodeで認証コードを取得（セキュア）
+        const appId = process.env.NEXT_PUBLIC_LARK_APP_ID;
+        if (!appId) {
+          console.error('NEXT_PUBLIC_LARK_APP_IDが設定されていません');
+          setResult({
+            isLoading: false,
+            isLarkApp: true,
+            error: 'アプリケーション設定エラー',
+            userInfo: null,
+          });
+          return;
+        }
 
-            // サーバーにユーザー情報を送信してセッションを作成
+        window.tt!.requestAuthCode({
+          appId,
+          success: async (res) => {
+            console.log('✅ Lark requestAuthCode成功:', res);
+            const authCode = res.code;
+
+            // サーバーに認証コードを送信してセッションを作成
             try {
               const response = await fetch('/api/auth/silent', {
                 method: 'POST',
@@ -64,20 +77,23 @@ export const useLarkSilentAuth = () => {
                   'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                  openID: userInfo.openID,
-                  employeeID: userInfo.employeeID,
+                  code: authCode,
                 }),
               });
 
               if (!response.ok) {
-                throw new Error('サイレント認証に失敗しました');
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData.error || 'サイレント認証に失敗しました');
               }
+
+              const data = await response.json();
+              console.log('✅ サイレント認証成功:', data);
 
               setResult({
                 isLoading: false,
                 isLarkApp: true,
                 error: null,
-                userInfo,
+                userInfo: data.user || null,
               });
 
               // 認証成功後、ホームページにリダイレクト
@@ -93,11 +109,11 @@ export const useLarkSilentAuth = () => {
             }
           },
           fail: (err) => {
-            console.error('❌ Lark getUserInfo失敗:', err);
+            console.error('❌ Lark requestAuthCode失敗:', err);
             setResult({
               isLoading: false,
               isLarkApp: true,
-              error: err.errorMessage || 'ユーザー情報の取得に失敗しました',
+              error: err.errorMessage || '認証コードの取得に失敗しました',
               userInfo: null,
             });
           },

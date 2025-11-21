@@ -45,6 +45,7 @@ declare global {
   interface Window {
     tt?: {
       getUserInfo: (options: GetUserInfoOptions) => void;
+      requestAuthCode: (options: RequestAuthCodeOptions) => void;
       getEnv: (options: GetEnvOptions) => void;
       checkSession: (options: CheckSessionOptions) => void;
     };
@@ -53,6 +54,13 @@ declare global {
 
 export interface GetUserInfoOptions {
   success?: (res: { userInfo: LarkUserInfo }) => void;
+  fail?: (err: LarkError) => void;
+  complete?: () => void;
+}
+
+export interface RequestAuthCodeOptions {
+  appId: string;
+  success?: (res: { code: string }) => void;
   fail?: (err: LarkError) => void;
   complete?: () => void;
 }

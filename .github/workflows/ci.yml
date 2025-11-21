@@ -22,29 +22,103 @@ jobs:
         run: npm ci
 
       - name: Lint & Type‑check & Build
+        env:
+          # ビルド時に必要な環境変数（ダミー値）
+          LARK_APP_ID: ${{ secrets.LARK_APP_ID || 'cli_dummy_app_id_for_build' }}
+          LARK_APP_SECRET: ${{ secrets.LARK_APP_SECRET || 'dummy_app_secret_for_build_only' }}
+          NEXT_PUBLIC_LARK_APP_ID: ${{ secrets.NEXT_PUBLIC_LARK_APP_ID || 'cli_dummy_app_id_for_build' }}
+          NEXT_PUBLIC_LARK_REDIRECT_URI: ${{ secrets.NEXT_PUBLIC_LARK_REDIRECT_URI || 'https://example.com/api/auth/callback' }}
         run: |
           npm run lint --if-present
           npm run type-check --if-present
           npm run build
 
       # ── Lark 通知 ──────────────────────────
+      # Note: LARK_BOT_WEBHOOK secret must be configured in repository settings
       - name: Notify Lark (success)
-        if: ${{ success() }}
-        uses: zhengbangbo/action-lark-notify@v1
-        with:
-          content: |
-            ✅ *CI Passed*  for `${{ github.repository }}` @ `${{ github.sha }}`
-          title: "CI Success"
-        env:
-          LARK_BOT_WEBHOOK: ${{ secrets.LARK_BOT_WEBHOOK }}
+        if: success()
+        continue-on-error: true
+        run: |
+          if [ -n "${{ secrets.LARK_BOT_WEBHOOK }}" ]; then
+            curl -X POST "${{ secrets.LARK_BOT_WEBHOOK }}" \
+              -H "Content-Type: application/json" \
+              -d '{
+                "msg_type": "interactive",
+                "card": {
+                  "header": {
+                    "title": {
+                      "tag": "plain_text",
+                      "content": "✅ CI Success"
+                    },
+                    "template": "green"
+                  },
+                  "elements": [
+                    {
+                      "tag": "div",
+                      "text": {
+                        "tag": "lark_md",
+                        "content": "**Repository:** `${{ github.repository }}`\n**Branch:** `${{ github.ref_name }}`\n**Commit:** `${{ github.sha }}`\n**Triggered by:** ${{ github.actor }}"
+                      }
+                    },
+                    {
+                      "tag": "action",
+                      "actions": [
+                        {
+                          "tag": "button",
+                          "text": {
+                            "tag": "plain_text",
+                            "content": "View Commit"
+                          },
+                          "type": "default",
+                          "url": "${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }}"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }'
+          fi
 
       - name: Notify Lark (failure)
-        if: ${{ failure() }}
-        uses: zhengbangbo/action-lark-notify@v1
-        with:
-          content: |
-            ❌ *CI Failed*  for `${{ github.repository }}` @ `${{ github.sha }}`
-            » <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View Logs>
-          title: "CI Failed"
-        env:
-          LARK_BOT_WEBHOOK: ${{ secrets.LARK_BOT_WEBHOOK }}
+        if: failure()
+        continue-on-error: true
+        run: |
+          if [ -n "${{ secrets.LARK_BOT_WEBHOOK }}" ]; then
+            curl -X POST "${{ secrets.LARK_BOT_WEBHOOK }}" \
+              -H "Content-Type: application/json" \
+              -d '{
+                "msg_type": "interactive",
+                "card": {
+                  "header": {
+                    "title": {
+                      "tag": "plain_text",
+                      "content": "❌ CI Failed"
+                    },
+                    "template": "red"
+                  },
+                  "elements": [
+                    {
+                      "tag": "div",
+                      "text": {
+                        "tag": "lark_md",
+                        "content": "**Repository:** `${{ github.repository }}`\n**Branch:** `${{ github.ref_name }}`\n**Commit:** `${{ github.sha }}`\n**Triggered by:** ${{ github.actor }}"
+                      }
+                    },
+                    {
+                      "tag": "action",
+                      "actions": [
+                        {
+                          "tag": "button",
+                          "text": {
+                            "tag": "plain_text",
+                            "content": "View Logs"
+                          },
+                          "type": "danger",
+                          "url": "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }'
+          fi

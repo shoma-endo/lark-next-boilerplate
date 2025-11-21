@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { autoRefreshLarkClient } from '@/app/lib/lark-client';
 
-export async function GET(request: NextRequest) {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export async function GET(_request: NextRequest) {
   try {
     // 自動リトライ機能付きでユーザー情報を取得
     const userInfo = await autoRefreshLarkClient.apiCall(async (token) => {
@@ -31,13 +32,17 @@ export async function GET(request: NextRequest) {
     autoRefreshLarkClient.updateCookies(response);
     
     return response;
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('ユーザー情報取得エラー:', error);
-    
+
+    const errorMessage = error && typeof error === 'object' && 'msg' in error
+      ? String(error.msg)
+      : 'ユーザー情報の取得に失敗しました';
+
     return NextResponse.json(
       {
         success: false,
-        error: error.msg || 'ユーザー情報の取得に失敗しました',
+        error: errorMessage,
       },
       { status: 500 }
     );

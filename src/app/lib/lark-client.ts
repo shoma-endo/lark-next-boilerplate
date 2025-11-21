@@ -103,17 +103,18 @@ class AutoRefreshLarkClient {
 
       try {
         return await apiFunction(token);
-      } catch (error: any) {
+      } catch (error: unknown) {
         attempts++;
-        
+
         // トークン期限切れエラーの場合
-        if (error.code === 99991677 && attempts <= maxRetries) {
+        const isTokenExpiredError = error && typeof error === 'object' && 'code' in error && error.code === 99991677;
+        if (isTokenExpiredError && attempts <= maxRetries) {
           console.log(`🔄 トークン期限切れエラー。再試行中... (${attempts}/${maxRetries})`);
           // トークンを強制的に更新
           this.tokenTimestamp = 0;
           continue;
         }
-        
+
         throw error;
       }
     }
@@ -122,7 +123,7 @@ class AutoRefreshLarkClient {
   }
 
   // 新しいトークンをCookieに保存する（NextResponse使用時）
-  updateCookies(response: any): void {
+  updateCookies(response: { cookies: { set: (name: string, value: string, options: Record<string, unknown>) => void } }): void {
     if (this.accessToken && this.refreshToken) {
       response.cookies.set('lark_token', this.accessToken, {
         httpOnly: true,

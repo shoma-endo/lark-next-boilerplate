@@ -65,7 +65,10 @@ lark-next-boilerplate/
 ├── src/
 │   ├── app/
 │   │   ├── api/
-│   │   │   ├── auth/callback/       # OAuth コールバックAPI
+│   │   │   ├── auth/
+│   │   │   │   ├── callback/        # OAuth コールバックAPI
+│   │   │   │   ├── silent/          # サイレント認証API
+│   │   │   │   └── logout/          # ログアウトAPI
 │   │   │   └── lark/user-info/      # ユーザー情報取得API（自動更新対応）
 │   │   ├── lib/
 │   │   │   ├── auth.ts              # 認証ヘルパー関数
@@ -79,10 +82,14 @@ lark-next-boilerplate/
 │   │   ├── ui/                      # shadcn/ui コンポーネント
 │   │   ├── user/                    # ユーザー関連コンポーネント
 │   │   └── login-form.tsx           # ログインフォーム
+│   ├── hooks/
+│   │   └── useLarkSilentAuth.ts     # サイレント認証フック
 │   ├── lib/
 │   │   ├── lark.ts                  # Lark SDK設定
+│   │   ├── lark-env-detector.ts     # Lark環境検出ユーティリティ
 │   │   └── utils.ts                 # ユーティリティ関数
 │   └── types/
+│       ├── lark-jsapi.d.ts          # Lark JSAPI型定義
 │       └── user.ts                  # ユーザー型定義
 ├── scripts/
 │   ├── lark-setup.sh               # セットアップスクリプト

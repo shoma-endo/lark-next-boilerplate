@@ -4,8 +4,19 @@ import { LarkAccessTokenResponse } from '@/types/user';
 
 export async function GET(req: NextRequest) {
   const code = req.nextUrl.searchParams.get('code');
+  const state = req.nextUrl.searchParams.get('state');
+
   if (!code) {
     return NextResponse.json({ error: '認証コードがありません。' }, { status: 400 });
+  }
+
+  // stateパラメータの検証（CSRF攻撃防止）
+  const savedState = req.cookies.get('oauth_state')?.value;
+  if (!state || !savedState || state !== savedState) {
+    return NextResponse.json(
+      { error: 'Invalid state parameter. Possible CSRF attack.' },
+      { status: 400 }
+    );
   }
 
   try {
@@ -31,7 +42,10 @@ export async function GET(req: NextRequest) {
     // Cookie 設定
     const response = NextResponse.redirect(new URL('/', req.url));
     const currentTimestamp = Date.now().toString();
-    
+
+    // 使用済みのoauth_stateクッキーを削除
+    response.cookies.delete('oauth_state');
+
     response.cookies.set('lark_token', access_token, {
       httpOnly: true,
       secure: true,

@@ -25,13 +25,24 @@ export async function GET(req: NextRequest) {
   }
 
   // stateパラメータの検証（CSRF攻撃防止）
-  if (!state) {
+  // 開発環境でのデバッグモード: 環境変数で検証をスキップ可能
+  const skipStateValidation = process.env.NODE_ENV === 'development' && process.env.SKIP_OAUTH_STATE_VALIDATION === 'true';
+
+  if (skipStateValidation) {
+    console.warn('⚠️ DEVELOPMENT MODE: OAuth state validation is DISABLED');
+    console.warn('⚠️ This should NEVER be used in production!');
+  }
+
+  if (!state && !skipStateValidation) {
     console.error('❌ State parameter is missing from callback URL');
     console.error('⚠️ This indicates that Lark did not return the state parameter.');
     console.error('⚠️ Possible causes:');
     console.error('   1. The state was not included in the initial authorization URL');
     console.error('   2. Lark application configuration issue');
     console.error('   3. Redirect URI mismatch');
+    console.error('');
+    console.error('💡 To temporarily bypass this check for debugging, set:');
+    console.error('   SKIP_OAUTH_STATE_VALIDATION=true');
     return NextResponse.json(
       {
         error: 'State parameter is missing from Lark callback',
@@ -39,13 +50,14 @@ export async function GET(req: NextRequest) {
           receivedState: state,
           savedState: savedState,
           hint: 'Check that the authorization URL includes the state parameter',
+          bypassHint: 'Set SKIP_OAUTH_STATE_VALIDATION=true in .env.local to temporarily bypass',
         } : undefined
       },
       { status: 400 }
     );
   }
 
-  if (!savedState) {
+  if (!savedState && !skipStateValidation) {
     console.error('❌ OAuth state cookie not found');
     console.error('Available cookies:', allCookies.map(c => c.name));
     return NextResponse.json(
@@ -61,7 +73,7 @@ export async function GET(req: NextRequest) {
     );
   }
 
-  if (state !== savedState) {
+  if (state && savedState && state !== savedState) {
     console.error('❌ State mismatch - Possible CSRF attack');
     console.error('Received:', state);
     console.error('Expected:', savedState);
@@ -78,7 +90,9 @@ export async function GET(req: NextRequest) {
     );
   }
 
-  console.log('✅ State validation passed');
+  if (!skipStateValidation) {
+    console.log('✅ State validation passed');
+  }
 
   try {
     // Larkからトークンとユーザー情報を同時取得

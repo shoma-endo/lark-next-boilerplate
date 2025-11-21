@@ -7,6 +7,7 @@ export async function GET() {
 
   console.log('=== Generating OAuth State ===');
   console.log('Generated state:', state);
+  console.log('State length:', state.length);
   console.log('Environment:', process.env.NODE_ENV);
 
   const response = NextResponse.json({ state });
@@ -30,8 +31,13 @@ export async function GET() {
   };
 
   console.log('Cookie options:', cookieOptions);
+  console.log('✅ Setting cookie: oauth_state =', state.substring(0, 20) + '...');
 
   response.cookies.set('oauth_state', state, cookieOptions);
+
+  // デバッグ用: 設定したCookieを確認
+  const setCookieHeader = response.headers.get('set-cookie');
+  console.log('Set-Cookie header:', setCookieHeader);
 
   return response;
 }

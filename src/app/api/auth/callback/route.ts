@@ -11,25 +11,34 @@ export async function GET(req: NextRequest) {
   const savedState = req.cookies.get('oauth_state')?.value;
 
   console.log('=== OAuth Callback Debug Info ===');
-  console.log('Received state:', state);
-  console.log('Saved state from cookie:', savedState);
-  console.log('All cookies:', allCookies.map(c => ({ name: c.name, value: c.value.substring(0, 20) + '...' })));
   console.log('Request URL:', req.url);
   console.log('Request headers (cookie):', req.headers.get('cookie'));
+  console.log('Received code:', code ? code.substring(0, 20) + '...' : 'null');
+  console.log('Received state:', state ? state.substring(0, 20) + '...' : 'null');
+  console.log('Saved state from cookie:', savedState ? savedState.substring(0, 20) + '...' : 'undefined');
+  console.log('All cookies:', allCookies.map(c => ({ name: c.name, value: c.value.substring(0, 20) + '...' })));
+  console.log('All URL params:', Object.fromEntries(req.nextUrl.searchParams.entries()));
 
   if (!code) {
+    console.error('❌ Code parameter is missing from callback URL');
     return NextResponse.json({ error: '認証コードがありません。' }, { status: 400 });
   }
 
   // stateパラメータの検証（CSRF攻撃防止）
   if (!state) {
     console.error('❌ State parameter is missing from callback URL');
+    console.error('⚠️ This indicates that Lark did not return the state parameter.');
+    console.error('⚠️ Possible causes:');
+    console.error('   1. The state was not included in the initial authorization URL');
+    console.error('   2. Lark application configuration issue');
+    console.error('   3. Redirect URI mismatch');
     return NextResponse.json(
       {
-        error: 'State parameter is missing',
+        error: 'State parameter is missing from Lark callback',
         debug: process.env.NODE_ENV === 'development' ? {
           receivedState: state,
           savedState: savedState,
+          hint: 'Check that the authorization URL includes the state parameter',
         } : undefined
       },
       { status: 400 }

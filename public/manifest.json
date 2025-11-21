@@ -1,0 +1,17 @@
+{
+  "name": "Lark Next.js Boilerplate",
+  "short_name": "Lark App",
+  "description": "Next.js 15 boilerplate with Lark integration",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#436AFF",
+  "icons": [
+    {
+      "src": "/lark-logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

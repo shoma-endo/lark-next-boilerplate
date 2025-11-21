@@ -19,6 +19,8 @@ export default function LoginPage() {
 
   const handleLogin = async () => {
     try {
+      console.log('=== Login Process Started ===');
+
       // stateパラメータを生成してクッキーに保存
       const stateRes = await fetch('/api/auth/generate-state', {
         credentials: 'include', // Cookieを確実に送受信
@@ -29,21 +31,32 @@ export default function LoginPage() {
       }
 
       const { state } = await stateRes.json();
+      console.log('✅ Received state from API:', state.substring(0, 20) + '...');
+      console.log('State length:', state.length);
 
       // localStorageにもstateを保存（Cookieのバックアップ）
       localStorage.setItem('oauth_state', state);
       localStorage.setItem('oauth_state_timestamp', Date.now().toString());
+      console.log('✅ Saved state to localStorage');
 
       const appId = process.env.NEXT_PUBLIC_LARK_APP_ID!;
       const redirectUri = encodeURIComponent(process.env.NEXT_PUBLIC_LARK_REDIRECT_URI!);
       const loginUrl = `https://open.larksuite.com/open-apis/authen/v1/index?app_id=${appId}&redirect_uri=${redirectUri}&state=${state}`;
 
+      console.log('=== Lark Authorization URL ===');
+      console.log('App ID:', appId);
+      console.log('Redirect URI (encoded):', redirectUri);
+      console.log('Redirect URI (decoded):', process.env.NEXT_PUBLIC_LARK_REDIRECT_URI);
+      console.log('State parameter:', state.substring(0, 20) + '...');
+      console.log('Full URL:', loginUrl);
+
       // Cookieが確実に設定されるよう、わずかに待機してからリダイレクト
       await new Promise(resolve => setTimeout(resolve, 100));
 
+      console.log('🚀 Redirecting to Lark...');
       window.location.href = loginUrl;
     } catch (error) {
-      console.error('ログイン処理でエラーが発生しました:', error);
+      console.error('❌ ログイン処理でエラーが発生しました:', error);
     }
   };
 

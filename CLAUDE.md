@@ -138,8 +138,8 @@ const { isLoading, isLarkApp, error, userInfo } = useLarkSilentAuth();
 **How it works:**
 1. User opens web app from Lark workbench or app
 2. `useLarkSilentAuth` hook detects Lark environment via User Agent
-3. Calls `window.tt.getUserInfo()` to get current Lark user
-4. Sends user info to `/api/auth/silent` to create session
+3. Calls `window.tt.requestAuthCode()` to get auth code from Lark (secure)
+4. Sends auth code to `/api/auth/silent` to verify and create session
 5. User is automatically logged in without clicking anything
 
 **Requirements:**

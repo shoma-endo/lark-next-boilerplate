@@ -112,13 +112,13 @@ graph TD
     B -->|通常ブラウザ| C[OAuth認証ボタン表示]
     B -->|Larkアプリ内| D[サイレント認証開始]
 
-    D --> E[tt.getUserInfo呼び出し]
-    E --> F{認証情報取得成功？}
+    D --> E[tt.requestAuthCode呼び出し]
+    E --> F{認証コード取得成功？}
 
-    F -->|成功| G[/api/auth/silentにPOST]
+    F -->|成功| G[認証コードを/api/auth/silentにPOST]
     F -->|失敗| H[手動ログインボタン表示]
 
-    G --> I{サーバー認証成功？}
+    G --> I{Lark APIで検証成功？}
     I -->|成功| J[セッション確立]
     I -->|失敗| H
 

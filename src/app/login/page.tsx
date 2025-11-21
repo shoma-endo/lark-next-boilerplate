@@ -20,12 +20,27 @@ export default function LoginPage() {
   const handleLogin = async () => {
     try {
       // stateパラメータを生成してクッキーに保存
-      const stateRes = await fetch('/api/auth/generate-state');
+      const stateRes = await fetch('/api/auth/generate-state', {
+        credentials: 'include', // Cookieを確実に送受信
+      });
+
+      if (!stateRes.ok) {
+        throw new Error('State生成に失敗しました');
+      }
+
       const { state } = await stateRes.json();
+
+      // localStorageにもstateを保存（Cookieのバックアップ）
+      localStorage.setItem('oauth_state', state);
+      localStorage.setItem('oauth_state_timestamp', Date.now().toString());
 
       const appId = process.env.NEXT_PUBLIC_LARK_APP_ID!;
       const redirectUri = encodeURIComponent(process.env.NEXT_PUBLIC_LARK_REDIRECT_URI!);
       const loginUrl = `https://open.larksuite.com/open-apis/authen/v1/index?app_id=${appId}&redirect_uri=${redirectUri}&state=${state}`;
+
+      // Cookieが確実に設定されるよう、わずかに待機してからリダイレクト
+      await new Promise(resolve => setTimeout(resolve, 100));
+
       window.location.href = loginUrl;
     } catch (error) {
       console.error('ログイン処理でエラーが発生しました:', error);

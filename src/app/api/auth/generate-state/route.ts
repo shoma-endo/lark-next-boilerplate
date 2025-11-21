@@ -5,16 +5,33 @@ export async function GET() {
   // ランダムなstateパラメータを生成（CSRF攻撃防止）
   const state = randomBytes(32).toString('hex');
 
+  console.log('=== Generating OAuth State ===');
+  console.log('Generated state:', state);
+  console.log('Environment:', process.env.NODE_ENV);
+
   const response = NextResponse.json({ state });
 
   // stateをHTTPOnly cookieに保存（XSS攻撃から保護）
-  response.cookies.set('oauth_state', state, {
+  // 環境に応じて適切なCookie設定を使用
+  const isProduction = process.env.NODE_ENV === 'production';
+
+  const cookieOptions: {
+    httpOnly: boolean;
+    secure: boolean;
+    sameSite: 'lax' | 'none';
+    path: string;
+    maxAge: number;
+  } = {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
+    secure: isProduction,
+    sameSite: isProduction ? 'none' : 'lax', // 本番: クロスサイト対応、開発: lax
     path: '/',
     maxAge: 60 * 10, // 10分間有効
-  });
+  };
+
+  console.log('Cookie options:', cookieOptions);
+
+  response.cookies.set('oauth_state', state, cookieOptions);
 
   return response;
 }

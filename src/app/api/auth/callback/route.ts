@@ -6,18 +6,70 @@ export async function GET(req: NextRequest) {
   const code = req.nextUrl.searchParams.get('code');
   const state = req.nextUrl.searchParams.get('state');
 
+  // デバッグ情報を収集
+  const allCookies = req.cookies.getAll();
+  const savedState = req.cookies.get('oauth_state')?.value;
+
+  console.log('=== OAuth Callback Debug Info ===');
+  console.log('Received state:', state);
+  console.log('Saved state from cookie:', savedState);
+  console.log('All cookies:', allCookies.map(c => ({ name: c.name, value: c.value.substring(0, 20) + '...' })));
+  console.log('Request URL:', req.url);
+  console.log('Request headers (cookie):', req.headers.get('cookie'));
+
   if (!code) {
     return NextResponse.json({ error: '認証コードがありません。' }, { status: 400 });
   }
 
   // stateパラメータの検証（CSRF攻撃防止）
-  const savedState = req.cookies.get('oauth_state')?.value;
-  if (!state || !savedState || state !== savedState) {
+  if (!state) {
+    console.error('❌ State parameter is missing from callback URL');
     return NextResponse.json(
-      { error: 'Invalid state parameter. Possible CSRF attack.' },
+      {
+        error: 'State parameter is missing',
+        debug: process.env.NODE_ENV === 'development' ? {
+          receivedState: state,
+          savedState: savedState,
+        } : undefined
+      },
       { status: 400 }
     );
   }
+
+  if (!savedState) {
+    console.error('❌ OAuth state cookie not found');
+    console.error('Available cookies:', allCookies.map(c => c.name));
+    return NextResponse.json(
+      {
+        error: 'OAuth state cookie not found. Please try logging in again.',
+        debug: process.env.NODE_ENV === 'development' ? {
+          message: 'Cookie may not have been set or was cleared. Check that cookies are enabled and redirect_uri matches exactly.',
+          receivedState: state,
+          availableCookies: allCookies.map(c => c.name),
+        } : undefined
+      },
+      { status: 400 }
+    );
+  }
+
+  if (state !== savedState) {
+    console.error('❌ State mismatch - Possible CSRF attack');
+    console.error('Received:', state);
+    console.error('Expected:', savedState);
+    return NextResponse.json(
+      {
+        error: 'Invalid state parameter. Possible CSRF attack.',
+        debug: process.env.NODE_ENV === 'development' ? {
+          receivedState: state,
+          savedState: savedState,
+          match: state === savedState,
+        } : undefined
+      },
+      { status: 400 }
+    );
+  }
+
+  console.log('✅ State validation passed');
 
   try {
     // Larkからトークンとユーザー情報を同時取得

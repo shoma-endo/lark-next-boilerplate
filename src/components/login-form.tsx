@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardContent, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -18,9 +19,11 @@ export const LoginForm = () => {
       <Card className="w-full max-w-md border-0 bg-white/80 backdrop-blur-sm dark:bg-slate-900/80 outline-none">
         <CardHeader className="space-y-1 text-center pb-8">
           <div className="mx-auto mb-4 h-12 w-12 rounded-full bg-white dark:bg-slate-800 flex items-center justify-center border-0 outline-none shadow-sm">
-            <img
+            <Image
               src="https://files.raycast.com/qms40tfo4jxh5ois1i8mwi7zxdox"
               alt="Lark"
+              width={32}
+              height={32}
               className="h-8 w-8 object-contain"
             />
           </div>

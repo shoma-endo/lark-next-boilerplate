@@ -7,7 +7,7 @@ import { useLarkSilentAuth } from '@/hooks/useLarkSilentAuth';
 import { useEffect, useState } from 'react';
 
 export default function LoginPage() {
-  const { isLoading, isLarkApp, error, userInfo } = useLarkSilentAuth();
+  const { isLoading, isLarkApp, error } = useLarkSilentAuth();
   const [showManualLogin, setShowManualLogin] = useState(false);
 
   useEffect(() => {

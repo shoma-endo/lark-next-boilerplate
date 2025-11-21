@@ -28,7 +28,15 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    const tokenData = tokenRes.data as any;
+    interface LarkTokenData {
+      access_token?: string;
+      refresh_token?: string;
+      name?: string;
+      avatar_url?: string;
+      open_id?: string;
+    }
+
+    const tokenData = tokenRes.data as LarkTokenData;
 
     if (!tokenData || !tokenData.access_token) {
       return NextResponse.json(

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import Image from 'next/image';
 
 type Props = {
   user: {
@@ -57,9 +58,11 @@ export const UserMenu = ({ user }: Props) => {
         aria-label="ユーザーメニュー"
       >
         {user.avatar_url ? (
-          <img
+          <Image
             src={user.avatar_url}
             alt={`${user.name}のアバター`}
+            width={40}
+            height={40}
             className="object-cover w-full h-full"
           />
         ) : (

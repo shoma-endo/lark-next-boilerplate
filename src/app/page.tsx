@@ -1,5 +1,6 @@
 // app/page.tsx
 import { cookies } from 'next/headers';
+import Image from 'next/image';
 import { LoginForm } from '@/components/login-form'; // ✅ クライアントコンポーネント
 import { UserMenu } from '@/components/user/user-menu';
 import { larkClient } from '@/lib/lark';
@@ -95,9 +96,11 @@ export default async function HomePage() {
           <div className="flex items-center space-x-6">
             <div className="flex-shrink-0">
               {user.avatar_url ? (
-                <img
+                <Image
                   src={user.avatar_url}
                   alt={`${user.name}のアバター`}
+                  width={80}
+                  height={80}
                   className="w-20 h-20 rounded-full ring-4 ring-blue-100 dark:ring-blue-900"
                 />
               ) : (

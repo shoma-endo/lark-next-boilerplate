@@ -163,11 +163,48 @@ const { isLoading, isLarkApp, error, userInfo } = useLarkSilentAuth();
 - **Async Params and SearchParams**: When accessing dynamic route params (`/blog/[id]`) or searchParams via `useSearchParams`, remember these are now async in Next.js 14+. Always use async/await to prevent errors.
 - **Supabase Client Usage**: Use `createServerClient()` for server-side operations (Server Components, Server Actions, Route Handlers) and `createClient()` for client-side operations. Import from `@supabase/supabase-js` and `@supabase/ssr` modules.
 
+## CI/CD Configuration
+
+This project uses GitHub Actions for continuous integration and deployment.
+
+### Environment Variables in CI/CD
+
+The build process requires the following environment variables to be set. These can be configured as GitHub Secrets:
+
+**Required Secrets:**
+- `LARK_APP_ID`: Your Lark application's app_id
+- `LARK_APP_SECRET`: Your Lark application's app_secret
+- `NEXT_PUBLIC_LARK_APP_ID`: Client-side app_id
+- `NEXT_PUBLIC_LARK_REDIRECT_URI`: OAuth redirect URI
+
+**Optional Secrets:**
+- `LARK_BOT_WEBHOOK`: Webhook URL for Lark notifications
+
+**Note**: If secrets are not configured, the CI workflow will use dummy values for the build. The build will succeed, but the deployed application will not function correctly without real credentials.
+
+### Configuring GitHub Secrets
+
+1. Go to your repository's **Settings** > **Secrets and variables** > **Actions**
+2. Click **New repository secret**
+3. Add each required secret with its corresponding value
+
+### Workflow Details
+
+The CI workflow (`.github/workflows/ci.yml`) runs on:
+- Pushes to `main` branch
+- Pull requests to `main` branch
+
+Jobs performed:
+1. Lint checking
+2. Type checking
+3. Production build
+4. Lark notification (if webhook is configured)
+
 ## Code Implementation Guidelines
 Follow these rules when you write code:
 - Use early returns whenever possible to make the code more readable.
 - Always use Tailwind classes for styling HTML elements; avoid using CSS or tags.
-- Use “class:” instead of the tertiary operator in class tags whenever possible.
-- Use descriptive variable and function/const names. Also, event functions should be named with a “handle” prefix, like “handleClick” for onClick and “handleKeyDown” for onKeyDown.
-- Implement accessibility features on elements. For example, a tag should have a tabindex=“0”, aria-label, on:click, and on:keydown, and similar attributes.
-- Use consts instead of functions, for example, “const toggle = () =>”. Also, define a type if possible.
+- Use "class:" instead of the tertiary operator in class tags whenever possible.
+- Use descriptive variable and function/const names. Also, event functions should be named with a "handle" prefix, like "handleClick" for onClick and "handleKeyDown" for onKeyDown.
+- Implement accessibility features on elements. For example, a tag should have a tabindex="0", aria-label, on:click, and on:keydown, and similar attributes.
+- Use consts instead of functions, for example, "const toggle = () =>". Also, define a type if possible.

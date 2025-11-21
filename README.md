@@ -262,6 +262,36 @@ npx shadcn-ui@latest add [component-name]
    - Larkアプリの権限設定を確認（連絡先情報読み取り権限が必要）
    - ブラウザのコンソールでエラーメッセージを確認
 
+## 🔄 CI/CD設定
+
+このプロジェクトはGitHub Actionsを使用したCI/CDパイプラインを含んでいます。
+
+### GitHub Secretsの設定
+
+本番環境でビルドする場合は、以下のSecretsをリポジトリ設定で追加してください：
+
+1. GitHubリポジトリの **Settings** > **Secrets and variables** > **Actions** に移動
+2. 以下のSecretsを追加：
+
+| Secret名 | 説明 | 必須 |
+|---------|------|-----|
+| `LARK_APP_ID` | Larkアプリケーションのapp_id | ✅ |
+| `LARK_APP_SECRET` | Larkアプリケーションのapp_secret | ✅ |
+| `NEXT_PUBLIC_LARK_APP_ID` | クライアント側で使用するapp_id | ✅ |
+| `NEXT_PUBLIC_LARK_REDIRECT_URI` | OAuth認証のリダイレクトURI | ✅ |
+| `LARK_BOT_WEBHOOK` | Lark通知用のWebhook URL（オプション） | ❌ |
+
+**注意**: Secretsが設定されていない場合、ビルド時にダミー値が使用されます。テスト目的のビルドは成功しますが、実際の認証は動作しません。
+
+### ワークフロー
+
+- **トリガー**: `main`ブランチへのプッシュまたはプルリクエスト
+- **ジョブ**:
+  1. Lintチェック
+  2. 型チェック
+  3. ビルド
+  4. Lark通知（成功/失敗）
+
 ## 📄 ライセンス
 
 このプロジェクトはMITライセンスの下で公開されています。

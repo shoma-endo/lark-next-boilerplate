@@ -22,6 +22,12 @@ jobs:
         run: npm ci
 
       - name: Lint & Type‑check & Build
+        env:
+          # ビルド時に必要な環境変数（ダミー値）
+          LARK_APP_ID: ${{ secrets.LARK_APP_ID || 'cli_dummy_app_id_for_build' }}
+          LARK_APP_SECRET: ${{ secrets.LARK_APP_SECRET || 'dummy_app_secret_for_build_only' }}
+          NEXT_PUBLIC_LARK_APP_ID: ${{ secrets.NEXT_PUBLIC_LARK_APP_ID || 'cli_dummy_app_id_for_build' }}
+          NEXT_PUBLIC_LARK_REDIRECT_URI: ${{ secrets.NEXT_PUBLIC_LARK_REDIRECT_URI || 'https://example.com/api/auth/callback' }}
         run: |
           npm run lint --if-present
           npm run type-check --if-present

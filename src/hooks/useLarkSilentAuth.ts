@@ -63,14 +63,35 @@ export const useLarkSilentAuth = () => {
           return;
         }
 
+        console.log('📤 tt.requestAuthCode呼び出し中...', { appId });
+
         window.tt!.requestAuthCode({
           appId,
           success: async (res) => {
             console.log('✅ Lark requestAuthCode成功:', res);
             const authCode = res.code;
 
+            console.log('🔍 認証コード確認:', {
+              hasCode: !!authCode,
+              codeLength: authCode?.length || 0,
+              codeType: typeof authCode
+            });
+
+            if (!authCode || authCode.trim() === '') {
+              console.error('❌ 認証コードが空です');
+              setResult({
+                isLoading: false,
+                isLarkApp: true,
+                error: '認証コードが取得できませんでした',
+                userInfo: null,
+              });
+              return;
+            }
+
             // サーバーに認証コードを送信してセッションを作成
             try {
+              console.log('📤 サーバーに認証コード送信中...');
+
               const response = await fetch('/api/auth/silent', {
                 method: 'POST',
                 headers: {

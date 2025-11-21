@@ -17,11 +17,19 @@ export default function LoginPage() {
     }
   }, [isLoading, isLarkApp, error]);
 
-  const handleLogin = () => {
-    const appId = process.env.NEXT_PUBLIC_LARK_APP_ID!;
-    const redirectUri = encodeURIComponent(process.env.NEXT_PUBLIC_LARK_REDIRECT_URI!);
-    const loginUrl = `https://open.larksuite.com/open-apis/authen/v1/index?app_id=${appId}&redirect_uri=${redirectUri}`;
-    window.location.href = loginUrl;
+  const handleLogin = async () => {
+    try {
+      // stateパラメータを生成してクッキーに保存
+      const stateRes = await fetch('/api/auth/generate-state');
+      const { state } = await stateRes.json();
+
+      const appId = process.env.NEXT_PUBLIC_LARK_APP_ID!;
+      const redirectUri = encodeURIComponent(process.env.NEXT_PUBLIC_LARK_REDIRECT_URI!);
+      const loginUrl = `https://open.larksuite.com/open-apis/authen/v1/index?app_id=${appId}&redirect_uri=${redirectUri}&state=${state}`;
+      window.location.href = loginUrl;
+    } catch (error) {
+      console.error('ログイン処理でエラーが発生しました:', error);
+    }
   };
 
   return (
